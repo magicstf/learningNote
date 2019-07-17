@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="./js/observe.js"></script>
+    <script src="./js/watcher.js"></script>
+    <script src="./js/index.js"></script>
+    <title>vue数据双向绑定</title>
+  </head>
+  <body>
+    <h1 id="name">{{ name }}</h1>
+    <script>
+    var ele = document.querySelector('#name');
+    var selfVue = new selfVue({
+        name: 'hello world'
+    }, ele, 'name');
+ 
+    window.setTimeout(function () {
+        console.log('name值改变了');
+        selfVue.data.name = 'canfoo';
+    }, 2000);
+
+    </script>
+  </body>
+</html>
