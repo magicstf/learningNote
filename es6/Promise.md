@@ -571,3 +571,164 @@ Promise.try(() => database.users.get({id: userId}))
 ```
 
 事实上，`Promise.try`就是模拟`try`代码块，就像`promise.catch`模拟的是`catch`代码块。
+
+## 实际应用
+
+阅读下面 代码，假设下面代码中doSomething和doSomethingElse返回的都是promise实例，请说出他们之间的区别：
+
+```js
+// 代码一
+doSomething().then(function () {
+  return doSomethingElse();
+});
+// 代码二
+doSomething().then(function () {
+  doSomethingElse();
+});
+// 代码三
+doSomething().then(doSomethingElse());
+// 代码四
+doSomething().then(doSomethingElse);
+```
+
+代码一：
+
+```js
+doSomething()
+    .then(function () {
+  		return doSomethingElse();
+    })
+    .then(finalHandler);
+```
+
+答案：
+
+```js
+doSomething
+|---------|
+    	   doSomethingElse(undefined)
+		   |------------------------|
+    								finalHandler(resultOfDoSomethingElse)
+									|------------|
+```
+
+代码一符合我们的预期，没什么问题，接下来
+
+代码二：
+
+```js
+doSomething()
+    .then(function () {
+  		doSomethingElse();
+	})
+    .then(finalHandler);
+```
+
+答案：
+
+```js
+doSomething
+|---------|
+           doSomethingElse(undefined)
+		   |------------------------|
+    	   finalHandler(undefined)
+		   |------------------------|
+```
+
+答案解析:由于第一个then的响应函数没有return, 所以虽然doSomething返回的是promise,但是这个promise实例并没有返回给第一个then的响应函数，所以第一个then我们默认返回空，那么下一步会几乎同时开始执行。
+
+代码三：
+
+```js
+doSomething()
+    .then(doSomethingElse())
+	.then(finalHandler);
+```
+
+答案：
+
+```js
+doSomething
+|---------|
+doSomethingElse(undefined)
+|------------------------|
+    	  finalHandler(resultOfDoSomething)
+```
+
+答案解析：第一个then传入了一个函数，并且采用的是执行的方式，也就是说，此时传进去的是一个promise实例，在这种情况下，第一个doSomething和第二个doSomethingElse他们俩个的执行时间几乎是一致的，因为doSomethingElse返回的是一个promise,而不是一个函数，在promise规范的定义当中，这个then会被忽略掉，所以，finalHandler最后一步执行的时候，侦听的是第一个doSomething的完成时间。
+
+代码四：
+
+```js
+doSomething()
+    .then(doSomethingElse)
+	.then(finalHandler);
+```
+
+答案：
+
+```js
+doSomething
+|---------|
+    	   doSomethingElse(resultOfDoSomething)
+		   |------------------------|
+    								finalHandler(resultOfDoSomethingElse)
+									|------------|
+```
+
+
+
+
+
+文章最后我们来利用promise实现一个红路灯，功能如下：控制台3秒输出green，1秒输出yellow，2秒输出red,不断循环
+
+代码如下：
+
+```js
+function green() {
+	return new Promise(function(resolve, reject){
+		setTimeout(function(){
+			console.log('green')
+			resolve()
+		},3000)
+		
+	})
+	
+}
+function yellow() {
+   	return new Promise(function(resolve, reject){
+        setTimeout(function(){
+            console.log('yellow')
+            resolve()
+        },1000)
+
+    })
+}
+function red() {
+   	return new Promise(function(resolve, reject){
+        setTimeout(function(){
+            console.log('red')
+            resolve()
+        },2000)
+
+    })
+}
+// 正常版本
+function step(){
+	green().then(function(){
+        return yellow()
+    }).then(function(){
+		return red()
+	}).then(function(){
+		return step()
+	})
+}
+// 优化版本
+function step(){
+    green().then(yellow).then(red).then(step)
+}
+step()
+```
+
+
+
