@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="app">
+      <!-- 插值绑定 -->
+      <p>{{ name }}</p>
+      <!-- 指令解析 -->
+      <p s-text="name"></p>
+      <p>{{ age }}</p>
+      <p>{{ doubleAge }}</p>
+      <!-- 双向绑定 -->
+      <input type="text" s-model="name" />
+      <!-- 事件处理 -->
+      <button @click="changeName">点我</button>
+      <!-- html内容解析 -->
+      <div s-html="html"></div>
+    </div>
+    <script src="./js/compile.js"></script>
+    <script src="./js/watcher.js"></script>
+    <script src="./js/svue.js"></script>
+    <script>
+      const sm = new SVue({
+        el: "#app",
+        data: {
+          name: "stf",
+          age: 18,
+          html: "<button>这是一个按钮</button>"
+        },
+        created() {
+          console.log("开始啦");
+          setTimeout(() => {
+            this.name = "测试";
+          }, 1000);
+        },
+        methods: {
+          changeName() {
+            this.name = "hello, stf";
+            this.age = 20;
+          }
+        }
+      });
+    </script>
+  </body>
+</html>
